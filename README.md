@@ -11,7 +11,7 @@ Opeity was based off the Awesomium port of Webkit as opposed to Opeity-Cef which
 (CefSharp). CefSharp is much more up to date, faster, and lighter weight than Awesomium. This makes Opeity-Cef much 
 faster and lighter than Opeity.
 
-Opeity-Cef is being developed as its own independant project to superceed Opeity therefore not all features will 
+Opeity-Cef is being developed as its own independent project to superceed Opeity therefore not all features will 
 be implemented across both projects.
 
 ### Building Opeity-Cef
