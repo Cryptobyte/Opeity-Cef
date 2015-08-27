@@ -115,7 +115,7 @@
 
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
-            <Controls:Flyout Header="Settings" Position="Right" Theme="Accent" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}">
+            <Controls:Flyout Header="Settings" Position="Right" Background="#CC119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}">
                 
             </Controls:Flyout>
         </Controls:FlyoutsControl>
@@ -125,7 +125,7 @@
         <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.Row="0" Address="{Binding Source={x:Static properties:Settings.Default}, Path=Home}">
             <FrameworkElement.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Back" Command="{Binding BackCommand}" />
+                    <MenuItem Header="Back" Command="{Binding BackCommand, ElementName=Browser}" />
                     <MenuItem Header="Forward" Command="{Binding ForwardCommand, ElementName=Browser}" />
                     <Separator />
                     <MenuItem Header="Print ..." Command="{Binding PrintCommand, ElementName=Browser}" />

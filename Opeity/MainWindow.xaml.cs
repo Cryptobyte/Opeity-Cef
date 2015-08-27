@@ -1,6 +1,10 @@
-﻿using MahApps.Metro.Controls;
+﻿using CefSharp;
+using MahApps.Metro.Controls;
 using Opeity.Properties;
 using System;
+using System.Collections.ObjectModel;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -9,29 +13,35 @@ namespace Opeity {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : MetroWindow {
+        public ObservableCollection<String> History { get; set; }
+
         public MainWindow() {
             InitializeComponent();
 
+            Browser.LoadError += (sender, args) => {
+                if (args.ErrorCode == CefErrorCode.Aborted)
+                    return;
+
+                
+            };
+
+            History = new ObservableCollection<String>();
             Browser.TitleChanged += Browser_TitleChanged;
         }
 
         private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            var fullFilePath = String.Format("http://www.google.com/s2/favicons?domain_url={0}", Browser.Address);
+            #region Favicon
 
+            var fullFilePath = String.Format("http://www.google.com/s2/favicons?domain_url={0}", Browser.Address);
             BitmapImage UIIcon = new BitmapImage();
+
             UIIcon.BeginInit();
             UIIcon.UriSource = new Uri(fullFilePath, UriKind.Absolute);
             UIIcon.EndInit();
 
-            BitmapImage ChromeIcon = new BitmapImage();
-            ChromeIcon.BeginInit();
-            ChromeIcon.UriSource = new Uri(fullFilePath, UriKind.Absolute);
-            ChromeIcon.DecodePixelHeight = 32;
-            ChromeIcon.DecodePixelWidth = 32;
-            ChromeIcon.EndInit();
-
             Favicon.Source = UIIcon;
-            Chrome.Icon = ChromeIcon;
+
+            #endregion
         }
 
         #region Window Buttons
