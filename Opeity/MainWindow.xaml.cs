@@ -12,7 +12,7 @@ namespace Opeity {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow {
+    public partial class MainWindow {
         public ObservableCollection<String> History { get; set; }
 
         public MainWindow() {
@@ -50,8 +50,7 @@ namespace Opeity {
             if (Browser.IsLoading) {
                 Browser.Stop();
             } else {
-                if (Browser.CanReload)
-                    Browser.Reload();
+                Browser.Reload();
             }
         }
 

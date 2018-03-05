@@ -1,21 +1,21 @@
-﻿<Controls:MetroWindow x:Class="Opeity.MainWindow"
+﻿<controls:MetroWindow x:Class="Opeity.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
-        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" 
+        xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" 
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf" 
         xmlns:properties="clr-namespace:Opeity.Properties" 
         x:Name="Chrome" Title="" Icon="Browser.ico" Height="350" Width="525" EnableDWMDropShadow="True" SaveWindowPosition="True" TitleCaps="False" LeftWindowCommandsOverlayBehavior="Never" RightWindowCommandsOverlayBehavior="Never" ShowIconOnTitleBar="False">
 
-    <Controls:MetroWindow.Resources>
+    <controls:MetroWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </Controls:MetroWindow.Resources>
+    </controls:MetroWindow.Resources>
 
-    <Controls:MetroWindow.LeftWindowCommands>
-        <Controls:WindowCommands>
+    <controls:MetroWindow.LeftWindowCommands>
+        <controls:WindowCommands>
             <Button x:Name="C_BTN_Main" Click="C_BTN_Main_Click" ToolTip="Home">
                 <StackPanel Orientation="Horizontal">
                     <Image x:Name="Favicon" Height="15" Width="15" Source="Browser.ico" />
@@ -96,11 +96,11 @@
                     </Rectangle>
                 </StackPanel>
             </Button>
-        </Controls:WindowCommands>
-    </Controls:MetroWindow.LeftWindowCommands>
+        </controls:WindowCommands>
+    </controls:MetroWindow.LeftWindowCommands>
 
-    <Controls:MetroWindow.RightWindowCommands>
-        <Controls:WindowCommands>
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
             <Button x:Name="C_BTN_Settings" Click="C_BTN_Settings_Click" ToolTip="Settings">
                 <StackPanel Orientation="Horizontal">
                     <Rectangle Width="15" Height="15" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}">
@@ -110,16 +110,16 @@
                     </Rectangle>
                 </StackPanel>
             </Button>
-        </Controls:WindowCommands>
-    </Controls:MetroWindow.RightWindowCommands>
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
 
-    <Controls:MetroWindow.Flyouts>
-        <Controls:FlyoutsControl>
-            <Controls:Flyout Header="Settings" Position="Right" Background="#CC119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}">
+    <controls:MetroWindow.Flyouts>
+        <controls:FlyoutsControl>
+            <controls:Flyout Header="Settings" Position="Right" Background="#CC119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
                 
-            </Controls:Flyout>
-        </Controls:FlyoutsControl>
-    </Controls:MetroWindow.Flyouts>
+            </controls:Flyout>
+        </controls:FlyoutsControl>
+    </controls:MetroWindow.Flyouts>
 
     <Grid>
         <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.Row="0" Address="{Binding Source={x:Static properties:Settings.Default}, Path=Home}">
@@ -142,4 +142,19 @@
             </FrameworkElement.ContextMenu>
         </cefSharp:ChromiumWebBrowser>
     </Grid>
-</Controls:MetroWindow>
+</controls:MetroWindow>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
