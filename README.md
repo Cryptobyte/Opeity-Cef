@@ -1,6 +1,5 @@
-[![Open Source Love png2](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/) [![GitHub license](https://img.shields.io/github/license/Cryptobyte/Opeity-Cef.svg)](https://github.com/Cryptobyte/Opeity-Cef/blob/master/LICENSE) [![Github all releases](https://img.shields.io/github/downloads/Cryptobyte/Opeity-Cef/total.svg)](https://GitHub.com/Cryptobyte/Opeity-Cef/releases/)
-
-![Opeity-Cef Screenshot](https://i.imgur.com/cG6sLgG.png "Opeity Preview")
+<p align="center">![Opeity-Cef Screenshot](https://i.imgur.com/cG6sLgG.png "Opeity Preview")</p>
+<p align="center">[![Open Source Love png2](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/) [![GitHub license](https://img.shields.io/github/license/Cryptobyte/Opeity-Cef.svg)](https://github.com/Cryptobyte/Opeity-Cef/blob/master/LICENSE) [![Github all releases](https://img.shields.io/github/downloads/Cryptobyte/Opeity-Cef/total.svg)](https://GitHub.com/Cryptobyte/Opeity-Cef/releases/)</p>
 
 ### What is Opeity-Cef?
 Opeity-Cef is a very simple web browser based on Chromium Embedded Framework (CefSharp). The focus of Opeity-Cef is to be a 
