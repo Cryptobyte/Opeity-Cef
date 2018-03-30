@@ -4,11 +4,16 @@ using Opeity.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shell;
+using AngleSharp.Parser.Html;
+using CommandLine;
+using IWshRuntimeLibrary;
 using Opeity.Handlers;
 
 namespace Opeity {
@@ -30,6 +35,18 @@ namespace Opeity {
         private CefState _plugins = CefState.Disabled;
         private CefState _loadImages = CefState.Enabled;
         private int _windowlessFrameRate = 60; // max ?? PCMR
+
+        public static bool _forceSingleWindow;
+        public static bool _appMode;
+
+        private class Options
+        {
+            [Option('o', "open", Required = false, HelpText = "Url to open.")]
+            public string OpenUrl { get; set; }
+
+            [Option('a', "app", Required = false, HelpText = "Open Opiety in App mode")]
+            public bool App { get; set; }
+        }
 
         /**
          * CefState is 0-2 value: true, false or default. Since we are
@@ -69,9 +86,9 @@ namespace Opeity {
             }
         }
 
-        public MainWindow(string url) {
+        public MainWindow() {
             InitializeComponent();
-
+            
             Browser.LoadError += (sender, args) => {
                 if (args.ErrorCode == CefErrorCode.Aborted)
                     return;
@@ -81,37 +98,104 @@ namespace Opeity {
 
                 args.Frame.LoadStringForUrl(errorBody, args.FailedUrl);
             };
-
-            History = new ObservableCollection<string>();
-            Browser.TitleChanged += Browser_TitleChanged;
-            downloadHandler = new DownloadHandler();
+            
+            downloadHandler         = new DownloadHandler();
             Browser.DownloadHandler = downloadHandler;
             Browser.LifeSpanHandler = new LifespanHandler();
-            Browser.RequestHandler = new RequestHandler();
+            Browser.RequestHandler  = new RequestHandler();
+            History                 = new ObservableCollection<string>();
+
+            Browser.TitleChanged += Browser_TitleChanged;
+            Browser.FrameLoadEnd += Browser_FrameLoadEnd;
+
             downloadHandler.OnDownloadUpdatedFired += DownloadHandler_OnDownloadUpdatedFired;
-
-            Browser.BrowserSettings.WebSecurity = _webSecurity;
-            Browser.BrowserSettings.ApplicationCache = _applicationCache;
-            Browser.BrowserSettings.Databases = _databases;
-            Browser.BrowserSettings.LocalStorage = _localStorage;
-            Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
-            Browser.BrowserSettings.JavascriptCloseWindows = _javascriptCloseWindows;
-            Browser.BrowserSettings.FileAccessFromFileUrls = _fileAccessFromFileUrls;
-            Browser.BrowserSettings.Plugins = _plugins;
-            Browser.BrowserSettings.ImageLoading = _loadImages;
-            Browser.BrowserSettings.WindowlessFrameRate = _windowlessFrameRate;
-
-            PropWebSecurity.IsChecked = ConvertCefState(_webSecurity);
-            PropApplicationCache.IsChecked = ConvertCefState(_applicationCache);
-            PropDatabases.IsChecked = ConvertCefState(_databases);
-            PropLocalStorage.IsChecked = ConvertCefState(_localStorage);
-            PropJavascriptAccessClipboard.IsChecked = ConvertCefState(_javascriptAccessClipboard);
-            PropJavascriptCloseWindows.IsChecked = ConvertCefState(_javascriptCloseWindows);
-            PropFileAccessFromFileUrls.IsChecked = ConvertCefState(_fileAccessFromFileUrls);
-            PropPlugins.IsChecked = ConvertCefState(_plugins);
-
+            
             Browser.FrameLoadEnd += delegate { Application.Current.Dispatcher.BeginInvoke((Action)(() => Browser.Focus())); };
-            Browser.Address = string.IsNullOrEmpty(url) ? Settings.Default.Home : url;
+
+            Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs()).WithParsed(options =>
+            {
+                Browser.Address = (string.IsNullOrEmpty(options.OpenUrl)) ? Settings.Default.Home : options.OpenUrl;
+
+                if (options.App)
+                {
+                    _webSecurity               = CefState.Enabled;
+                    _applicationCache          = CefState.Enabled;
+                    _databases                 = CefState.Enabled;
+                    _localStorage              = CefState.Enabled;
+                    _javascriptAccessClipboard = CefState.Enabled;
+                    _javascriptCloseWindows    = CefState.Enabled;
+                    _fileAccessFromFileUrls    = CefState.Disabled;
+                    _plugins                   = CefState.Disabled;
+                    _loadImages                = CefState.Enabled;
+                    _forceSingleWindow         = true;
+                    _appMode                   = true;
+
+                    C_BTN_Main.Visibility      = Visibility.Collapsed;
+                    C_BTN_Back.Visibility      = Visibility.Collapsed;
+                    C_BTN_Refresh.Visibility   = Visibility.Collapsed;
+                    C_BTN_Forward.Visibility   = Visibility.Collapsed;
+                    C_BTN_Settings.Visibility  = Visibility.Collapsed;
+                }
+            });
+
+            Browser.BrowserSettings.WebSecurity               = _webSecurity;
+            Browser.BrowserSettings.ApplicationCache          = _applicationCache;
+            Browser.BrowserSettings.Databases                 = _databases;
+            Browser.BrowserSettings.LocalStorage              = _localStorage;
+            Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
+            Browser.BrowserSettings.JavascriptCloseWindows    = _javascriptCloseWindows;
+            Browser.BrowserSettings.FileAccessFromFileUrls    = _fileAccessFromFileUrls;
+            Browser.BrowserSettings.Plugins                   = _plugins;
+            Browser.BrowserSettings.ImageLoading              = _loadImages;
+            Browser.BrowserSettings.WindowlessFrameRate       = _windowlessFrameRate;
+
+            PropWebSecurity.IsChecked               = ConvertCefState(_webSecurity);
+            PropApplicationCache.IsChecked          = ConvertCefState(_applicationCache);
+            PropDatabases.IsChecked                 = ConvertCefState(_databases);
+            PropLocalStorage.IsChecked              = ConvertCefState(_localStorage);
+            PropJavascriptAccessClipboard.IsChecked = ConvertCefState(_javascriptAccessClipboard);
+            PropJavascriptCloseWindows.IsChecked    = ConvertCefState(_javascriptCloseWindows);
+            PropFileAccessFromFileUrls.IsChecked    = ConvertCefState(_fileAccessFromFileUrls);
+            PropPlugins.IsChecked                   = ConvertCefState(_plugins);
+            PropLoadImages.IsChecked                = ConvertCefState(_loadImages);
+            PropForceSingleWindow.IsChecked         = _forceSingleWindow;
+        }
+
+        private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
+        {
+            if (e.Frame.IsMain)
+            {
+                Browser.GetSourceAsync().ContinueWith(taskHtml =>
+                {
+                    var html = taskHtml.Result;
+                    var parser = new HtmlParser();
+                    var document = parser.Parse(html);
+                    var colorItems = document.All.Where(m => m.LocalName == "meta" && m.GetAttribute("name") == "theme-color");
+                    var color = string.Empty;
+
+                    foreach (var colorItem in colorItems)
+                        color = colorItem.GetAttribute("content");
+
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            WindowTitleBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(color);
+                        }));
+                    }
+                    else
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            Brush defBrush = new SolidColorBrush((Color)FindResource("AccentColor"));
+
+                            if (!Equals(WindowTitleBrush, defBrush))
+                                WindowTitleBrush = defBrush;
+
+                        }));
+                    }
+                });
+            }
         }
 
         private void DownloadHandler_OnDownloadUpdatedFired(object sender, DownloadItem e)
@@ -128,7 +212,7 @@ namespace Opeity {
         private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             #region Favicon
 
-            var fullFilePath = $"http://www.google.com/s2/favicons?domain_url={Browser.Address}";
+            var fullFilePath = $"https://api.statvoo.com/favicon/?url={Browser.Address}";
             var uiIcon = new BitmapImage();
 
             uiIcon.BeginInit();
@@ -136,6 +220,7 @@ namespace Opeity {
             uiIcon.EndInit();
 
             Favicon.Source = uiIcon;
+            Icon = uiIcon;
 
             #endregion
 
@@ -178,6 +263,39 @@ namespace Opeity {
 
         private void C_BTN_Main_Click(object sender, RoutedEventArgs e) {
             Browser.Address = Settings.Default.Home;
+        }
+
+        private void C_BTN_MakeApp_Click(object sender, RoutedEventArgs e)
+        {
+            var appDir =
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Apps");
+
+            if (!Directory.Exists(appDir))
+                Directory.CreateDirectory(appDir);
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(
+                    $"https://api.statvoo.com/favicon/?url={Browser.Address}",
+                    Path.Combine(appDir, $"{Browser.Title}.ico")
+                );
+            }
+
+            var startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var shell = new WshShell();
+            var shortCutLinkFilePath = Path.Combine(startupFolderPath, $"{Browser.Title}.lnk");
+            var windowsApplicationShortcut = (IWshShortcut)shell.CreateShortcut(shortCutLinkFilePath);
+            windowsApplicationShortcut.Description = Browser.Title;
+
+            windowsApplicationShortcut.WorkingDirectory =
+                Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            windowsApplicationShortcut.TargetPath =
+                System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            windowsApplicationShortcut.Arguments = $"-app -o \"{Browser.Address}\"";
+            windowsApplicationShortcut.IconLocation = Path.Combine(appDir, $"{Browser.Title}.ico");
+            windowsApplicationShortcut.Save();
         }
 
         #endregion
@@ -252,6 +370,12 @@ namespace Opeity {
                 PropLoadImages.IsChecked != null && PropLoadImages.IsChecked.Value);
 
             Browser.BrowserSettings.ImageLoading = _loadImages;
+        }
+
+        private void PropForceSingleWindow_Checked(object sender, RoutedEventArgs e)
+        {
+            if (PropForceSingleWindow.IsChecked != null)
+                _forceSingleWindow = PropForceSingleWindow.IsChecked.Value;
         }
 
         #endregion

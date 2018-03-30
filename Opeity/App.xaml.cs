@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using CommandLine;
 
 namespace Opeity {
     /// <summary>
@@ -14,8 +15,7 @@ namespace Opeity {
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            Console.WriteLine((e.Args.Length > 0) ? e.Args[0] : "No?");
-            new MainWindow((e.Args.Length > 0) ? e.Args[0] : null).Show();
+            new MainWindow().Show();
         }
     }
 }

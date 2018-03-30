@@ -1,4 +1,4 @@
-![Opeity-Cef Screenshot](http://i.imgur.com/OK4TSlE.png "Optional title")
+![Opeity-Cef Screenshot](https://i.imgur.com/cG6sLgG.png "Opeity Preview")
 
 ### What is Opeity-Cef?
 
@@ -16,5 +16,5 @@ be implemented across both projects.
 
 ### Building Opeity-Cef
 
-Opeity-Cef is built with Visual Studio 2013 on Windows 10. Nuget Package Restore is enabled to make things easier 
+Opeity-Cef is built with Visual Studio 2017 on Windows 10. Nuget Package Restore is enabled to make things easier 
 for other developers. Please feel free to contribute to Opeity via Github.

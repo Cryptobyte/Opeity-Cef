@@ -102,6 +102,29 @@
 
     <controls:MetroWindow.RightWindowCommands>
         <controls:WindowCommands>
+            <Button x:Name="C_BTN_MakeApp" Click="C_BTN_MakeApp_Click" ToolTip="Make App">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="15" Height="15" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_add}" />
+                        </Rectangle.OpacityMask>
+
+                        <Rectangle.Style>
+                            <Style TargetType="Rectangle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoading, ElementName=Browser}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsLoading, ElementName=Browser}" Value="False">
+                                        <Setter Property="IsEnabled" Value="True" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Rectangle.Style>
+                    </Rectangle>
+                </StackPanel>
+            </Button>
+
             <Button x:Name="C_BTN_Downloads" Click="C_BTN_Downloads_Click" ToolTip="Downloads">
                 <StackPanel Orientation="Horizontal">
                     <Rectangle Width="15" Height="15" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}">
@@ -135,8 +158,14 @@
                     <Grid.Resources>
                         <Style TargetType="Border" >
                             <Setter Property="Padding" Value="5,5,5,5" />
+                            <Setter Property="Margin" Value="25,15" />
                         </Style>
                     </Grid.Resources>
+                    
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -147,9 +176,11 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Grid.Column="0">
+                    <Border Grid.Row="0" Grid.Column="0" >
                         <controls:ToggleSwitch x:Name="PropWebSecurity" Checked="PropWebSecurity_Checked" Header="Web Security" />
                     </Border>
 
@@ -173,16 +204,20 @@
                         <controls:ToggleSwitch x:Name="PropJavascriptCloseWindows" Checked="PropJavascriptCloseWindows_Checked" Header="Allow Javascript to Close Windows" />
                     </Border>
 
-                    <Border Grid.Row="6" Grid.Column="0">
+                    <Border Grid.Row="0" Grid.Column="1">
                         <controls:ToggleSwitch x:Name="PropFileAccessFromFileUrls" Checked="PropFileAccessFromFileUrls_Checked" Header="Allow File Access From File Urls" />
                     </Border>
 
-                    <Border Grid.Row="7" Grid.Column="0">
+                    <Border Grid.Row="1" Grid.Column="1">
                         <controls:ToggleSwitch x:Name="PropPlugins" Checked="PropPlugins_Checked" Header="Plugins" />
                     </Border>
 
-                    <Border Grid.Row="7" Grid.Column="0">
+                    <Border Grid.Row="2" Grid.Column="1">
                         <controls:ToggleSwitch x:Name="PropLoadImages" Checked="PropLoadImages_Checked" Header="Load Images" />
+                    </Border>
+
+                    <Border Grid.Row="3" Grid.Column="1">
+                        <controls:ToggleSwitch x:Name="PropForceSingleWindow" Checked="PropForceSingleWindow_Checked" Header="Force Single Window" />
                     </Border>
                 </Grid>
             </controls:Flyout>

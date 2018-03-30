@@ -16,11 +16,17 @@ namespace Opeity
             IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
         {
             newBrowser = null;
-            
+
+            if (MainWindow._forceSingleWindow)
+            {
+                browserControl.Load(targetUrl);
+                return true;
+            }
+
             var newWin = Process.Start(new ProcessStartInfo()
             {
                 FileName = System.Reflection.Assembly.GetExecutingAssembly().Location,
-                Arguments = targetUrl
+                Arguments = $"-o \"{targetUrl}\""
             });
 
             return true;
