@@ -4,7 +4,9 @@
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" 
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf" 
         xmlns:properties="clr-namespace:Opeity.Properties" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:opeity="clr-namespace:Opeity"
+                      mc:Ignorable="d"
                       x:Name="Chrome" Title="" Icon="Browser.ico" Height="350" Width="525" BorderThickness="0" BorderBrush="Black" SaveWindowPosition="True" TitleCharacterCasing="Normal"  LeftWindowCommandsOverlayBehavior="Never" RightWindowCommandsOverlayBehavior="Never" ShowIconOnTitleBar="False" Closing="Chrome_Closing" Loaded="Chrome_Loaded">
 
     <controls:MetroWindow.Resources>
@@ -150,7 +152,15 @@
     <controls:MetroWindow.Flyouts>
         <controls:FlyoutsControl>
             <controls:Flyout Header="Downloads" Position="Right" Background="#119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
-                
+                <DataGrid x:Name="Downloads" ColumnHeaderStyle="{StaticResource DownloadGridColumnHeader}" RowStyle="{StaticResource DownloadGridRow}" ItemsSource="{Binding Path=filesDownloading}" IsReadOnly="True" Background="#119EDA" AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="2*" Header="File" Binding="{Binding Path=File}" Foreground="White" />
+                        <DataGridTextColumn Width="4*" Header="Source" Binding="{Binding Path=Source}" Foreground="White" />
+                        <DataGridTextColumn Width="4*" Header="Destination" Binding="{Binding Path=Destination}" Foreground="White" />
+                        <DataGridTextColumn Width="1*" Header="Speed" Binding="{Binding Path=ReadableSpeed}" Foreground="White" />
+                        <DataGridTextColumn Width="1*" Header="Progress" Binding="{Binding Path=Progress}" Foreground="White" />
+                    </DataGrid.Columns>
+                </DataGrid>
             </controls:Flyout>
 
             <controls:Flyout Header="Settings" Position="Right" Background="#119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
@@ -226,7 +236,7 @@
 
     <Grid>
         <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.ZIndex="0" Grid.Row="0">
-            <!-- Context Menu -->
+
         </cefSharp:ChromiumWebBrowser>
     </Grid>
 </controls:MetroWindow>

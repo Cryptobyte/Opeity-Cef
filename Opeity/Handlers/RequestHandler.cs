@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
+﻿using CefSharp;
+using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using CefSharp;
-using ControlzEx.Windows.Shell;
+using System.Windows;
 
 namespace Opeity.Handlers
 {
@@ -20,6 +14,17 @@ namespace Opeity.Handlers
 
         public bool OnOpenUrlFromTab(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture)
         {
+            if (userGesture)
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = System.Reflection.Assembly.GetExecutingAssembly().Location,
+                    Arguments = $"-o \"{targetUrl}\""
+                });
+
+                return true;
+            }
+
             return false;
         }
 
@@ -65,6 +70,12 @@ namespace Opeity.Handlers
 
         public bool OnProtocolExecution(IWebBrowser browserControl, IBrowser browser, string url)
         {
+            
+            if (MessageBox.Show($"Do you want to open the application registered to handle this type of url?\n\n{url}", "Open Application?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                Process.Start(url);
+            }
+
             return false;
         }
 

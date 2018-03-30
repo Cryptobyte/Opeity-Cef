@@ -34,5 +34,125 @@ namespace Opeity.Properties {
                 this["Home"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool WebSecurity {
+            get {
+                return ((bool)(this["WebSecurity"]));
+            }
+            set {
+                this["WebSecurity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ApplicationCache {
+            get {
+                return ((bool)(this["ApplicationCache"]));
+            }
+            set {
+                this["ApplicationCache"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Databases {
+            get {
+                return ((bool)(this["Databases"]));
+            }
+            set {
+                this["Databases"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool LocalStorage {
+            get {
+                return ((bool)(this["LocalStorage"]));
+            }
+            set {
+                this["LocalStorage"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool JavascriptAccessClipboard {
+            get {
+                return ((bool)(this["JavascriptAccessClipboard"]));
+            }
+            set {
+                this["JavascriptAccessClipboard"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool JavascriptCloseWindows {
+            get {
+                return ((bool)(this["JavascriptCloseWindows"]));
+            }
+            set {
+                this["JavascriptCloseWindows"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FileAccessFromFileUrls {
+            get {
+                return ((bool)(this["FileAccessFromFileUrls"]));
+            }
+            set {
+                this["FileAccessFromFileUrls"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Plugins {
+            get {
+                return ((bool)(this["Plugins"]));
+            }
+            set {
+                this["Plugins"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool LoadImages {
+            get {
+                return ((bool)(this["LoadImages"]));
+            }
+            set {
+                this["LoadImages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        public int WindowlessFrameRate {
+            get {
+                return ((int)(this["WindowlessFrameRate"]));
+            }
+            set {
+                this["WindowlessFrameRate"] = value;
+            }
+        }
     }
 }

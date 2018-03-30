@@ -3,18 +3,20 @@ using CefSharp;
 using CommandLine;
 using IWshRuntimeLibrary;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using Opeity.Handlers;
+using Opeity.Objects;
 using Opeity.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Application = System.Windows.Application;
-using MessageBox = System.Windows.MessageBox;
 using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 
 namespace Opeity
@@ -22,24 +24,30 @@ namespace Opeity
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow {
+    public partial class MainWindow
+    {
         public ObservableCollection<string> History { get; set; }
+        public ObservableCollection<DownloadItemEx> filesDownloading = new ObservableCollection<DownloadItemEx>();
 
         private DownloadHandler downloadHandler;
 
-        private CefState _webSecurity = CefState.Enabled;
-        private CefState _applicationCache = CefState.Disabled;
-        private CefState _databases = CefState.Disabled;
-        private CefState _localStorage = CefState.Disabled;
-        private CefState _javascriptAccessClipboard = CefState.Disabled;
-        private CefState _javascriptCloseWindows = CefState.Disabled;
-        private CefState _fileAccessFromFileUrls = CefState.Disabled;
-        private CefState _plugins = CefState.Disabled;
-        private CefState _loadImages = CefState.Enabled;
-        private int _windowlessFrameRate = 60; // max ?? PCMR
+        private CefState _webSecurity;
+        private CefState _applicationCache;
+        private CefState _databases;
+        private CefState _localStorage;
+        private CefState _javascriptAccessClipboard;
+        private CefState _javascriptCloseWindows;
+        private CefState _fileAccessFromFileUrls;
+        private CefState _plugins;
+        private CefState _loadImages;
+        private int _windowlessFrameRate;
 
         public static bool _forceSingleWindow;
         public static bool _appMode;
+
+        private bool _forcedExit = false;
+
+        #region Command Line Parser Options
 
         private class Options
         {
@@ -50,12 +58,16 @@ namespace Opeity
             public bool App { get; set; }
         }
 
+        #endregion
+
+        #region Cef Converters
+
         /**
          * CefState is 0-2 value: true, false or default. Since we are
-         * going for simplistic privacy approach here this can be simplified
+         * going for simplistic approach here this can be simplified
          * to a boolean true or false value..
          */
-        public bool ConvertCefState(CefState state)
+        public bool CefStateToBoolean(CefState state)
         {
             switch (state)
             {
@@ -73,7 +85,7 @@ namespace Opeity
             }
         }
 
-        private CefState ConvertBooleanToCefState(bool state)
+        private CefState BooleanToCefState(bool state)
         {
             switch (state)
             {
@@ -88,31 +100,50 @@ namespace Opeity
             }
         }
 
+        #endregion
+
         public MainWindow() {
             InitializeComponent();
             
-            Browser.LoadError += (sender, args) => {
-                if (args.ErrorCode == CefErrorCode.Aborted)
-                    return;
+            #region Browser Handlers
 
-                var errorBody =
-                    $"<html><body bgcolor=\"white\"><h2>Failed to load URL {args.FailedUrl} <br /><br />Error: {args.ErrorText}<br />Code:{args.ErrorCode}</h2></body></html>";
-
-                args.Frame.LoadStringForUrl(errorBody, args.FailedUrl);
-            };
-            
             downloadHandler         = new DownloadHandler();
             Browser.DownloadHandler = downloadHandler;
             Browser.LifeSpanHandler = new LifespanHandler();
             Browser.RequestHandler  = new RequestHandler();
+            Browser.MenuHandler     = new ContextMenuHandler();
+            Browser.RequestContext  = new RequestContext(new RequestContextHandler());
             History                 = new ObservableCollection<string>();
+            Downloads.ItemsSource   = filesDownloading;
+
+            #endregion
+
+            #region Browser Events
 
             Browser.TitleChanged += Browser_TitleChanged;
             Browser.FrameLoadEnd += Browser_FrameLoadEnd;
+            Browser.LoadError += Browser_LoadError;
 
-            downloadHandler.OnDownloadUpdatedFired += DownloadHandler_OnDownloadUpdatedFired;
-            
-            Browser.FrameLoadEnd += delegate { Application.Current.Dispatcher.BeginInvoke((Action)(() => Browser.Focus())); };
+            downloadHandler.OnDownloadItemUpdated += DownloadHandlerOnOnDownloadItemUpdated;
+
+            #endregion
+
+            #region Load User Settings
+
+            _webSecurity = BooleanToCefState(Settings.Default.WebSecurity);
+            _applicationCache = BooleanToCefState(Settings.Default.ApplicationCache);
+            _databases = BooleanToCefState(Settings.Default.Databases);
+            _localStorage = BooleanToCefState(Settings.Default.LocalStorage);
+            _javascriptAccessClipboard = BooleanToCefState(Settings.Default.JavascriptAccessClipboard);
+            _javascriptCloseWindows = BooleanToCefState(Settings.Default.JavascriptCloseWindows);
+            _fileAccessFromFileUrls = BooleanToCefState(Settings.Default.FileAccessFromFileUrls);
+            _plugins = BooleanToCefState(Settings.Default.Plugins);
+            _loadImages = BooleanToCefState(Settings.Default.LoadImages);
+            _windowlessFrameRate = Settings.Default.WindowlessFrameRate;
+
+            #endregion
+
+            #region Command Line Parser
 
             Parser.Default.ParseArguments<Options>(Environment.GetCommandLineArgs()).WithParsed(options =>
             {
@@ -141,6 +172,10 @@ namespace Opeity
                 }
             });
 
+            #endregion
+
+            #region Browser Defaults
+            
             Browser.BrowserSettings.WebSecurity               = _webSecurity;
             Browser.BrowserSettings.ApplicationCache          = _applicationCache;
             Browser.BrowserSettings.Databases                 = _databases;
@@ -152,20 +187,113 @@ namespace Opeity
             Browser.BrowserSettings.ImageLoading              = _loadImages;
             Browser.BrowserSettings.WindowlessFrameRate       = _windowlessFrameRate;
 
-            PropWebSecurity.IsChecked               = ConvertCefState(_webSecurity);
-            PropApplicationCache.IsChecked          = ConvertCefState(_applicationCache);
-            PropDatabases.IsChecked                 = ConvertCefState(_databases);
-            PropLocalStorage.IsChecked              = ConvertCefState(_localStorage);
-            PropJavascriptAccessClipboard.IsChecked = ConvertCefState(_javascriptAccessClipboard);
-            PropJavascriptCloseWindows.IsChecked    = ConvertCefState(_javascriptCloseWindows);
-            PropFileAccessFromFileUrls.IsChecked    = ConvertCefState(_fileAccessFromFileUrls);
-            PropPlugins.IsChecked                   = ConvertCefState(_plugins);
-            PropLoadImages.IsChecked                = ConvertCefState(_loadImages);
+            PropWebSecurity.IsChecked               = CefStateToBoolean(_webSecurity);
+            PropApplicationCache.IsChecked          = CefStateToBoolean(_applicationCache);
+            PropDatabases.IsChecked                 = CefStateToBoolean(_databases);
+            PropLocalStorage.IsChecked              = CefStateToBoolean(_localStorage);
+            PropJavascriptAccessClipboard.IsChecked = CefStateToBoolean(_javascriptAccessClipboard);
+            PropJavascriptCloseWindows.IsChecked    = CefStateToBoolean(_javascriptCloseWindows);
+            PropFileAccessFromFileUrls.IsChecked    = CefStateToBoolean(_fileAccessFromFileUrls);
+            PropPlugins.IsChecked                   = CefStateToBoolean(_plugins);
+            PropLoadImages.IsChecked                = CefStateToBoolean(_loadImages);
             PropForceSingleWindow.IsChecked         = _forceSingleWindow;
+
+            #endregion
+        }
+
+        private void DownloadHandlerOnOnDownloadItemUpdated(object sender, DownloadHandler.DownloadProgress e)
+        {
+            if (e.Item.IsInProgress)
+            {
+                if ((!string.IsNullOrEmpty(e.Item.Url)) &&
+                    (!string.IsNullOrEmpty(e.Item.OriginalUrl)) &&
+                    (!string.IsNullOrEmpty(e.Item.FullPath)))
+                {
+                    var pass = true;
+                    foreach (var download in filesDownloading)
+                    {
+                        if (download.Id == e.Item.Id)
+                        {
+                            download.File = Path.GetFileName(e.Item.FullPath);
+                            download.Source = e.Item.Url;
+                            download.Destination = e.Item.FullPath;
+                            download.Speed = e.Item.CurrentSpeed;
+                            download.Progress = e.Item.PercentComplete;
+                            download.UpdateReadableSpeed();
+                            pass = false;
+                        }
+                    }
+
+                    if (pass)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            filesDownloading.Add(new DownloadItemEx(e.Item));
+                        });
+                    }
+                }
+
+                return;
+            }
+
+            if (e.Item.IsCancelled)
+            {
+                foreach (var download in filesDownloading)
+                {
+                    if (download.Id == e.Item.Id)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            filesDownloading.Remove(download);
+                        });
+                        
+                        break;
+                    }
+                }
+            }
+
+            if (e.Item.IsComplete)
+            {
+                foreach (var download in filesDownloading)
+                {
+                    if (download.Id == e.Item.Id)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            filesDownloading.Remove(download);
+                        });
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        public async Task<bool> Prompt(string title, string message)
+        {
+            var result = await this.ShowMessageAsync(title, message, MessageDialogStyle.AffirmativeAndNegative);
+
+            if (result == MessageDialogResult.Affirmative)
+                return true;
+
+            return false;
+        }
+
+        private void Browser_LoadError(object sender, LoadErrorEventArgs e)
+        {
+            if (e.ErrorCode == CefErrorCode.Aborted)
+                return;
+
+            var errorBody =
+                $"<html><body bgcolor=\"white\"><pre>Failed to load URL {e.FailedUrl} | Error: {e.ErrorText} | Code:{e.ErrorCode}</pre></body></html>";
+
+            e.Frame.LoadStringForUrl(errorBody, e.FailedUrl);
         }
 
         private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
         {
+            Application.Current.Dispatcher.BeginInvoke((Action)(() => Browser.Focus()));
+
             if (e.Frame.IsMain)
             {
                 Browser.GetSourceAsync().ContinueWith(taskHtml =>
@@ -201,17 +329,6 @@ namespace Opeity
             }
         }
 
-        private void DownloadHandler_OnDownloadUpdatedFired(object sender, DownloadItem e)
-        {
-            if (!e.IsComplete || !e.IsCancelled)
-            {
-
-                return;
-            }
-
-
-        }
-
         private void Browser_TitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             #region Favicon
 
@@ -230,17 +347,41 @@ namespace Opeity
             Title = Browser.Title;
         }
 
-        private void Chrome_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void Chrome_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (downloadHandler.FilesDownloading.Count > 0)
+            if (filesDownloading.Count > 0)
             {
-                if (MessageBox.Show(
-                        "Files are still downloading. Quitting Opeity will cancel them, are you sure you want to quit?", "Downloading Files..", 
-                        MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.No)
-                {
+                if (!_forcedExit)
                     e.Cancel = true;
+
+                var result = await Prompt("Downloading Files..",
+                    "Files are still downloading. Quitting Opeity will cancel them, are you sure you want to quit?");
+
+                if (result)
+                {
+                    _forcedExit = true;
+                    Close();
                 }
             }
+
+            Browser.Dispose();
+            Cef.Shutdown();
+
+            #region Save User Settings
+
+            Settings.Default.WebSecurity = CefStateToBoolean(_webSecurity);
+            Settings.Default.ApplicationCache = CefStateToBoolean(_applicationCache);
+            Settings.Default.Databases = CefStateToBoolean(_databases);
+            Settings.Default.LocalStorage = CefStateToBoolean(_localStorage);
+            Settings.Default.JavascriptAccessClipboard = CefStateToBoolean(_javascriptAccessClipboard);
+            Settings.Default.JavascriptCloseWindows = CefStateToBoolean(_javascriptCloseWindows);
+            Settings.Default.FileAccessFromFileUrls = CefStateToBoolean(_fileAccessFromFileUrls);
+            Settings.Default.Plugins = CefStateToBoolean(_plugins);
+            Settings.Default.LoadImages = CefStateToBoolean(_loadImages);
+            Settings.Default.WindowlessFrameRate = _windowlessFrameRate;
+            Settings.Default.Save();
+
+            #endregion
         }
 
         #region Window Buttons
@@ -266,6 +407,18 @@ namespace Opeity
 
         private void C_BTN_Main_Click(object sender, RoutedEventArgs e) {
             Browser.Address = Settings.Default.Home;
+        }
+
+        private async void C_BTN_Main_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var result = await Prompt("Change Homepage?",
+                $"Would you like to change your homepage to\n\n{Browser.Address}");
+
+            if (result)
+            {
+                Settings.Default.Home = Browser.Address;
+                Settings.Default.Save();
+            }
         }
 
         private void C_BTN_MakeApp_Click(object sender, RoutedEventArgs e)
@@ -321,13 +474,13 @@ namespace Opeity
 
         private void PropWebSecurity_Checked(object sender, RoutedEventArgs e)
         {
-            _webSecurity = ConvertBooleanToCefState(PropWebSecurity.IsChecked != null && PropWebSecurity.IsChecked.Value);
+            _webSecurity = BooleanToCefState(PropWebSecurity.IsChecked != null && PropWebSecurity.IsChecked.Value);
             Browser.BrowserSettings.WebSecurity = _webSecurity;
         }
 
         private void PropApplicationCache_Checked(object sender, RoutedEventArgs e)
         {
-            _applicationCache = ConvertBooleanToCefState(
+            _applicationCache = BooleanToCefState(
                 PropApplicationCache.IsChecked != null && PropApplicationCache.IsChecked.Value);
 
             Browser.BrowserSettings.ApplicationCache = _applicationCache;
@@ -335,7 +488,7 @@ namespace Opeity
 
         private void PropDatabases_Checked(object sender, RoutedEventArgs e)
         {
-            _databases = ConvertBooleanToCefState(
+            _databases = BooleanToCefState(
                 PropDatabases.IsChecked != null && PropDatabases.IsChecked.Value);
 
             Browser.BrowserSettings.Databases = _databases;
@@ -343,7 +496,7 @@ namespace Opeity
 
         private void PropLocalStorage_Checked(object sender, RoutedEventArgs e)
         {
-           _localStorage = ConvertBooleanToCefState(
+           _localStorage = BooleanToCefState(
                PropLocalStorage.IsChecked != null && PropLocalStorage.IsChecked.Value);
 
             Browser.BrowserSettings.LocalStorage = _localStorage;
@@ -351,7 +504,7 @@ namespace Opeity
 
         private void PropJavascriptAccessClipboard_Checked(object sender, RoutedEventArgs e)
         {
-           _javascriptAccessClipboard = ConvertBooleanToCefState(
+           _javascriptAccessClipboard = BooleanToCefState(
                PropJavascriptAccessClipboard.IsChecked != null && PropJavascriptAccessClipboard.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
@@ -359,7 +512,7 @@ namespace Opeity
 
         private void PropJavascriptCloseWindows_Checked(object sender, RoutedEventArgs e)
         {
-           _javascriptCloseWindows = ConvertBooleanToCefState(
+           _javascriptCloseWindows = BooleanToCefState(
                PropJavascriptCloseWindows.IsChecked != null && PropJavascriptCloseWindows.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptCloseWindows = _javascriptCloseWindows;
@@ -367,7 +520,7 @@ namespace Opeity
 
         private void PropFileAccessFromFileUrls_Checked(object sender, RoutedEventArgs e)
         {
-            _fileAccessFromFileUrls = ConvertBooleanToCefState(
+            _fileAccessFromFileUrls = BooleanToCefState(
                 PropFileAccessFromFileUrls.IsChecked != null && PropFileAccessFromFileUrls.IsChecked.Value);
 
             Browser.BrowserSettings.FileAccessFromFileUrls = _fileAccessFromFileUrls;
@@ -375,7 +528,7 @@ namespace Opeity
 
         private void PropPlugins_Checked(object sender, RoutedEventArgs e)
         {
-            _plugins = ConvertBooleanToCefState(
+            _plugins = BooleanToCefState(
                 PropPlugins.IsChecked != null && PropPlugins.IsChecked.Value);
 
             Browser.BrowserSettings.Plugins = _plugins;
@@ -383,7 +536,7 @@ namespace Opeity
 
         private void PropLoadImages_Checked(object sender, RoutedEventArgs e)
         {
-            _loadImages = ConvertBooleanToCefState(
+            _loadImages = BooleanToCefState(
                 PropLoadImages.IsChecked != null && PropLoadImages.IsChecked.Value);
 
             Browser.BrowserSettings.ImageLoading = _loadImages;
@@ -396,18 +549,7 @@ namespace Opeity
         }
 
         #endregion
-
-        private void C_BTN_Main_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (MessageBox.Show(
-                    $"Would you like to change your homepage to\n\n{Browser.Address}", "Change Homepage?",
-                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
-            {
-                Settings.Default.Home = Browser.Address;
-                Settings.Default.Save();
-            }
-        }
-
+        
         private void Chrome_Loaded(object sender, RoutedEventArgs e)
         {
             

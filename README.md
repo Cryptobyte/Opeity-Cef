@@ -8,7 +8,7 @@ no bs easy to use web browser configured with fairly safe and secure defaults.
 ### Roadmap
 - [x] Basic (home, back, forward, refresh) functionality
 - [x] Simple Preferences to toggle some options in CefSharp
-- [ ] File download support
+- [x] File download support
 - [ ] Automatic Ad blocker using [AdBlock style lists](https://easylist.to/)
 - [ ] Simple, automatic Tor support
 - [ ] Automatic update functionality

@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using CefSharp;
 using CommandLine;
 
 namespace Opeity {
@@ -15,6 +16,13 @@ namespace Opeity {
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            Cef.EnableHighDPISupport();
+            Cef.Initialize(
+                new CefSettings(), 
+                performDependencyCheck: true, 
+                browserProcessHandler: null
+            );
+
             new MainWindow().Show();
         }
     }
