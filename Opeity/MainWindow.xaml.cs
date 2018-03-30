@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Squirrel;
 using Application = System.Windows.Application;
 using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 
@@ -550,9 +551,12 @@ namespace Opeity
 
         #endregion
         
-        private void Chrome_Loaded(object sender, RoutedEventArgs e)
+        private async void Chrome_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            using (var mgr = UpdateManager.GitHubUpdateManager("https://github.com/Cryptobyte/Opeity-Cef"))
+            {
+                await mgr.Result.UpdateApp();
+            }
         }
     }
 }
