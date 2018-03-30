@@ -1,20 +1,23 @@
+[![Open Source Love png2](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/) [![GitHub license](https://img.shields.io/github/license/Cryptobyte/Opeity-Cef.svg)](https://github.com/Cryptobyte/Opeity-Cef/blob/master/LICENSE) [![Github all releases](https://img.shields.io/github/downloads/Cryptobyte/Opeity-Cef/total.svg)](https://GitHub.com/Cryptobyte/Opeity-Cef/releases/)
+
 ![Opeity-Cef Screenshot](https://i.imgur.com/cG6sLgG.png "Opeity Preview")
 
 ### What is Opeity-Cef?
+Opeity-Cef is a very simple web browser based on Chromium Embedded Framework (CefSharp). The focus of Opeity-Cef is to be a 
+no bs easy to use web browser configured with fairly safe and secure defaults.
 
-Opeity-Cef is a lightweight simple web browser based on Chromium Embedded Framework (CefSharp). Its purpose is to 
-be a modern browser in situations where a full featured browser is not feasable such as under low memory conditions.
+### Roadmap
+- [x] Basic (home, back, forward, refresh) functionality
+- [x] Simple Preferences to toggle some options in CefSharp
+- [ ] File download support
+- [ ] Automatic Ad blocker using [AdBlock style lists](https://easylist.to/)
+- [ ] Simple, automatic Tor support
+- [ ] Automatic update functionality
 
-### Opeity vs Opeity-Cef
+### Updates
+This is a side project of mine that I work on just for fun so updates may not be very frequent but over time I will try my 
+best to update all dependencies and bring features into the browser until a basic feature set is achieved.
 
-Opeity was based off the Awesomium port of Webkit as opposed to Opeity-Cef which is based on the Chromium Embedded Framework 
-(CefSharp). CefSharp is much more up to date, faster, and lighter weight than Awesomium. This makes Opeity-Cef much 
-faster and lighter than Opeity.
-
-Opeity-Cef is being developed as its own independent project to superceed Opeity therefore not all features will 
-be implemented across both projects.
-
-### Building Opeity-Cef
-
+### Building
 Opeity-Cef is built with Visual Studio 2017 on Windows 10. Nuget Package Restore is enabled to make things easier 
 for other developers. Please feel free to contribute to Opeity via Github.

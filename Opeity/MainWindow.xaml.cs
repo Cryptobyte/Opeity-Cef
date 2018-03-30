@@ -1,22 +1,24 @@
-﻿using CefSharp;
+﻿using AngleSharp.Parser.Html;
+using CefSharp;
+using CommandLine;
+using IWshRuntimeLibrary;
 using MahApps.Metro.Controls;
+using Opeity.Handlers;
 using Opeity.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shell;
-using AngleSharp.Parser.Html;
-using CommandLine;
-using IWshRuntimeLibrary;
-using Opeity.Handlers;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
+using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 
-namespace Opeity {
+namespace Opeity
+{
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -135,6 +137,7 @@ namespace Opeity {
                     C_BTN_Refresh.Visibility   = Visibility.Collapsed;
                     C_BTN_Forward.Visibility   = Visibility.Collapsed;
                     C_BTN_Settings.Visibility  = Visibility.Collapsed;
+                    C_BTN_MakeApp.Visibility   = Visibility.Collapsed;
                 }
             });
 
@@ -178,21 +181,21 @@ namespace Opeity {
 
                     if (!string.IsNullOrEmpty(color))
                     {
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             WindowTitleBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(color);
-                        }));
+                        });
                     }
                     else
                     {
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             Brush defBrush = new SolidColorBrush((Color)FindResource("AccentColor"));
 
                             if (!Equals(WindowTitleBrush, defBrush))
                                 WindowTitleBrush = defBrush;
 
-                        }));
+                        });
                     }
                 });
             }
@@ -267,35 +270,49 @@ namespace Opeity {
 
         private void C_BTN_MakeApp_Click(object sender, RoutedEventArgs e)
         {
-            var appDir =
-                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Apps");
-
-            if (!Directory.Exists(appDir))
-                Directory.CreateDirectory(appDir);
-
-            using (var client = new WebClient())
+            var sfd = new SaveFileDialog()
             {
-                client.DownloadFile(
-                    $"https://api.statvoo.com/favicon/?url={Browser.Address}",
-                    Path.Combine(appDir, $"{Browser.Title}.ico")
-                );
+                Title = Properties.Resources.MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut,
+                AddExtension = true,
+                CheckPathExists = true,
+                FileName = $"{Browser.Title}.lnk",
+                Filter = "Shortcut (*.lnk)|*.lnk",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                RestoreDirectory = true,
+            };
+
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var appDir =
+                    Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Apps");
+
+                if (!Directory.Exists(appDir))
+                    Directory.CreateDirectory(appDir);
+
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(
+                        $"https://api.statvoo.com/favicon/?url={Browser.Address}",
+                        Path.Combine(appDir, $"{Browser.Title}.ico")
+                    );
+                }
+                
+                var shell = new WshShell();
+                var shortCutLinkFilePath = sfd.FileName;
+                var windowsApplicationShortcut = (IWshShortcut)shell.CreateShortcut(shortCutLinkFilePath);
+
+                windowsApplicationShortcut.Description = Browser.Title;
+
+                windowsApplicationShortcut.WorkingDirectory =
+                    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                windowsApplicationShortcut.TargetPath =
+                    System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+                windowsApplicationShortcut.Arguments = $"-app -o \"{Browser.Address}\"";
+                windowsApplicationShortcut.IconLocation = Path.Combine(appDir, $"{Browser.Title}.ico");
+                windowsApplicationShortcut.Save();
             }
-
-            var startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var shell = new WshShell();
-            var shortCutLinkFilePath = Path.Combine(startupFolderPath, $"{Browser.Title}.lnk");
-            var windowsApplicationShortcut = (IWshShortcut)shell.CreateShortcut(shortCutLinkFilePath);
-            windowsApplicationShortcut.Description = Browser.Title;
-
-            windowsApplicationShortcut.WorkingDirectory =
-                Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            windowsApplicationShortcut.TargetPath =
-                System.Reflection.Assembly.GetExecutingAssembly().Location;
-
-            windowsApplicationShortcut.Arguments = $"-app -o \"{Browser.Address}\"";
-            windowsApplicationShortcut.IconLocation = Path.Combine(appDir, $"{Browser.Title}.ico");
-            windowsApplicationShortcut.Save();
         }
 
         #endregion

@@ -59,5 +59,14 @@ namespace Opeity.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create App Shortcut.
+        /// </summary>
+        internal static string MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut {
+            get {
+                return ResourceManager.GetString("MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut", resourceCulture);
+            }
+        }
     }
 }
