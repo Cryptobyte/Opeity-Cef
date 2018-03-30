@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CefSharp;
 using System.Windows;
-using CefSharp;
-using CommandLine;
+using Squirrel;
 
-namespace Opeity {
+namespace Opeity
+{
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>

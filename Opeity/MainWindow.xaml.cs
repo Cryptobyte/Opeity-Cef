@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Squirrel;
@@ -47,6 +48,8 @@ namespace Opeity
         public static bool _appMode;
 
         private bool _forcedExit = false;
+
+        private Timer updateTimer;
 
         #region Command Line Parser Options
 
@@ -200,6 +203,39 @@ namespace Opeity
             PropForceSingleWindow.IsChecked         = _forceSingleWindow;
 
             #endregion
+
+            updateTimer = new Timer()
+            {
+                Enabled = true,
+                Interval = 3000
+            };
+
+            updateTimer.Tick += UpdateTimer_Tick;
+        }
+
+        private async void UpdateTimer_Tick(object sender, EventArgs e)
+        {
+            updateTimer.Enabled = false;
+
+            await Task.Factory.StartNew(async () => {
+                try
+                {
+                    using (var mgr = await UpdateManager.GitHubUpdateManager("https://github.com/Cryptobyte/Opeity-Cef"))
+                    {
+                        try
+                        {
+                            var updateInfo = await mgr.CheckForUpdate(true);
+                            await mgr.DownloadReleases(updateInfo.ReleasesToApply);
+                            await mgr.ApplyReleases(updateInfo);
+                            await mgr.CreateUninstallerRegistryEntry();
+
+                            Console.WriteLine(updateInfo.CurrentlyInstalledVersion);
+
+                        } catch (Exception ex) { Console.WriteLine(ex.Message); }
+                    }
+
+                } catch (Exception ex) { Console.WriteLine(ex.Message); }
+            });
         }
 
         private void DownloadHandlerOnOnDownloadItemUpdated(object sender, DownloadHandler.DownloadProgress e)
@@ -551,12 +587,9 @@ namespace Opeity
 
         #endregion
         
-        private async void Chrome_Loaded(object sender, RoutedEventArgs e)
+        private void Chrome_Loaded(object sender, RoutedEventArgs e)
         {
-            using (var mgr = UpdateManager.GitHubUpdateManager("https://github.com/Cryptobyte/Opeity-Cef"))
-            {
-                await mgr.Result.UpdateApp();
-            }
+            
         }
     }
 }
