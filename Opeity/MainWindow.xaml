@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" 
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf" 
-        xmlns:properties="clr-namespace:Opeity.Properties" 
-        x:Name="Chrome" Title="" Icon="Browser.ico" Height="350" Width="525" BorderThickness="0" BorderBrush="Black" SaveWindowPosition="True" TitleCharacterCasing="Normal"  LeftWindowCommandsOverlayBehavior="Never" RightWindowCommandsOverlayBehavior="Never" ShowIconOnTitleBar="False" Closing="Chrome_Closing">
+        xmlns:properties="clr-namespace:Opeity.Properties" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+                      x:Name="Chrome" Title="" Icon="Browser.ico" Height="350" Width="525" BorderThickness="0" BorderBrush="Black" SaveWindowPosition="True" TitleCharacterCasing="Normal"  LeftWindowCommandsOverlayBehavior="Never" RightWindowCommandsOverlayBehavior="Never" ShowIconOnTitleBar="False" Closing="Chrome_Closing" Loaded="Chrome_Loaded">
 
     <controls:MetroWindow.Resources>
         <ResourceDictionary>
@@ -16,7 +17,7 @@
 
     <controls:MetroWindow.LeftWindowCommands>
         <controls:WindowCommands>
-            <Button x:Name="C_BTN_Main" Click="C_BTN_Main_Click" ToolTip="Home">
+            <Button x:Name="C_BTN_Main" Click="C_BTN_Main_Click" ToolTip="Home" MouseRightButtonUp="C_BTN_Main_MouseRightButtonUp" >
                 <StackPanel Orientation="Horizontal">
                     <Image x:Name="Favicon" Height="15" Width="15" Source="Browser.ico" />
                 </StackPanel>
@@ -101,6 +102,16 @@
 
     <controls:MetroWindow.RightWindowCommands>
         <controls:WindowCommands>
+            <Button x:Name="C_BTN_Downloads" Click="C_BTN_Downloads_Click" ToolTip="Downloads">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="15" Height="15" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_download}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                </StackPanel>
+            </Button>
+
             <Button x:Name="C_BTN_Settings" Click="C_BTN_Settings_Click" ToolTip="Settings">
                 <StackPanel Orientation="Horizontal">
                     <Rectangle Width="15" Height="15" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}">
@@ -115,51 +126,72 @@
 
     <controls:MetroWindow.Flyouts>
         <controls:FlyoutsControl>
-            <controls:Flyout Header="Settings" Position="Right" Background="#CC119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
-                <Grid>
+            <controls:Flyout Header="Downloads" Position="Right" Background="#119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
+                
+            </controls:Flyout>
+
+            <controls:Flyout Header="Settings" Position="Right" Background="#119EDA" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:MetroWindow}}}">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid.Resources>
+                        <Style TargetType="Border" >
+                            <Setter Property="Padding" Value="5,5,5,5" />
+                        </Style>
+                    </Grid.Resources>
+
                     <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <CheckBox Grid.Row="0" x:Name="PropWebSecurity" Content="WebSecurity" Checked="PropWebSecurity_Checked"></CheckBox>
-                    <CheckBox Grid.Row="1" x:Name="PropApplicationCache" Content="ApplicationCache" Checked="PropApplicationCache_Checked"></CheckBox>
-                    <CheckBox Grid.Row="2" x:Name="PropDatabases" Content="Databases" Checked="PropDatabases_Checked"></CheckBox>
-                    <CheckBox Grid.Row="3" x:Name="PropLocalStorage" Content="LocalStorage" Checked="PropLocalStorage_Checked"></CheckBox>
-                    <CheckBox Grid.Row="4" x:Name="PropJavascriptAccessClipboard" Content="JavascriptAccessClipboard" Checked="PropJavascriptAccessClipboard_Checked"></CheckBox>
-                    <CheckBox Grid.Row="5" x:Name="PropJavascriptCloseWindows" Content="JavascriptCloseWindows" Checked="PropJavascriptCloseWindows_Checked"></CheckBox>
-                    <CheckBox Grid.Row="6" x:Name="PropFileAccessFromFileUrls" Content="FileAccessFromFileUrls" Checked="PropFileAccessFromFileUrls_Checked"></CheckBox>
-                    <CheckBox Grid.Row="7" x:Name="PropPlugins" Content="Plugins" Checked="PropPlugins_Checked"></CheckBox>
+                    <Border Grid.Row="0" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropWebSecurity" Checked="PropWebSecurity_Checked" Header="Web Security" />
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropApplicationCache" Checked="PropApplicationCache_Checked" Header="Application Cache" />
+                    </Border>
+
+                    <Border Grid.Row="2" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropDatabases" Checked="PropDatabases_Checked" Header="Databases" />
+                    </Border>
+
+                    <Border Grid.Row="3" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropLocalStorage" Checked="PropLocalStorage_Checked" Header="Local Storage" />
+                    </Border>
+
+                    <Border Grid.Row="4" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropJavascriptAccessClipboard" Checked="PropJavascriptAccessClipboard_Checked" Header="Allow Javascript to Access Clipboard" />
+                    </Border>
+
+                    <Border Grid.Row="5" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropJavascriptCloseWindows" Checked="PropJavascriptCloseWindows_Checked" Header="Allow Javascript to Close Windows" />
+                    </Border>
+
+                    <Border Grid.Row="6" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropFileAccessFromFileUrls" Checked="PropFileAccessFromFileUrls_Checked" Header="Allow File Access From File Urls" />
+                    </Border>
+
+                    <Border Grid.Row="7" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropPlugins" Checked="PropPlugins_Checked" Header="Plugins" />
+                    </Border>
+
+                    <Border Grid.Row="7" Grid.Column="0">
+                        <controls:ToggleSwitch x:Name="PropLoadImages" Checked="PropLoadImages_Checked" Header="Load Images" />
+                    </Border>
                 </Grid>
             </controls:Flyout>
         </controls:FlyoutsControl>
     </controls:MetroWindow.Flyouts>
 
     <Grid>
-        <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.Row="0" Address="{Binding Source={x:Static properties:Settings.Default}, Path=Home}">
-            <FrameworkElement.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Back" Command="{Binding BackCommand, ElementName=Browser}" />
-                    <MenuItem Header="Forward" Command="{Binding ForwardCommand, ElementName=Browser}" />
-                    <Separator />
-                    <MenuItem Header="Print ..." Command="{Binding PrintCommand, ElementName=Browser}" />
-                    <Separator />
-                    <MenuItem Header="Zoom In" Command="{Binding ZoomInCommand, ElementName=Browser}" />
-                    <MenuItem Header="Zoom Out" Command="{Binding ZoomOutCommand, ElementName=Browser}" />
-                    <MenuItem Header="Zoom Reset" Command="{Binding ZoomResetCommand, ElementName=Browser}" />
-                    <Separator />
-                    <MenuItem Header="View Source" Command="{Binding ViewSourceCommand, ElementName=Browser}" />
-                    <MenuItem Header="Cut" Command="{Binding CutCommand, ElementName=Browser}"/>
-                    <MenuItem Header="Copy" Command="{Binding CopyCommand, ElementName=Browser}"/>
-                    <MenuItem Header="Paste" Command="{Binding PasteCommand, ElementName=Browser}"/>
-                </ContextMenu>
-            </FrameworkElement.ContextMenu>
+        <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.ZIndex="0" Grid.Row="0">
+            <!-- Context Menu -->
         </cefSharp:ChromiumWebBrowser>
     </Grid>
 </controls:MetroWindow>

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="Home" Type="System.String" Scope="User">
-      <Value Profile="(Default)">https://www.google.com/</Value>
+      <Value Profile="(Default)">https://start.duckduckgo.com</Value>
     </Setting>
   </Settings>
 </SettingsFile>
