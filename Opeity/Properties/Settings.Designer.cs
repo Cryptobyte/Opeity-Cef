@@ -154,5 +154,17 @@ namespace Opeity.Properties {
                 this["WindowlessFrameRate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ForceSingleWindow {
+            get {
+                return ((bool)(this["ForceSingleWindow"]));
+            }
+            set {
+                this["ForceSingleWindow"] = value;
+            }
+        }
     }
 }

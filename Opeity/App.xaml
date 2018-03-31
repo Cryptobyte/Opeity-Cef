@@ -12,20 +12,6 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <Style x:Key="DownloadGridColumnHeader" BasedOn="{StaticResource MetroDataGridColumnHeader}" TargetType="{x:Type DataGridColumnHeader}">
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-                <Setter Property="BorderThickness" Value="0, 0, 0, 0" />
-                <Setter Property="SeparatorBrush" Value="Transparent" />
-                <Setter Property="SeparatorVisibility" Value="Collapsed" />
-            </Style>
-
-            <Style x:Key="DownloadGridRow" BasedOn="{StaticResource MetroDataGridRow}" TargetType="{x:Type DataGridRow}">
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Background" Value="Transparent" />
-            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

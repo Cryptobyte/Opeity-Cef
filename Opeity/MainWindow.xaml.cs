@@ -173,6 +173,8 @@ namespace Opeity
                     C_BTN_Forward.Visibility   = Visibility.Collapsed;
                     C_BTN_Settings.Visibility  = Visibility.Collapsed;
                     C_BTN_MakeApp.Visibility   = Visibility.Collapsed;
+
+                    _appMode = true;
                 }
             });
 
@@ -406,17 +408,20 @@ namespace Opeity
 
             #region Save User Settings
 
-            Settings.Default.WebSecurity = CefStateToBoolean(_webSecurity);
-            Settings.Default.ApplicationCache = CefStateToBoolean(_applicationCache);
-            Settings.Default.Databases = CefStateToBoolean(_databases);
-            Settings.Default.LocalStorage = CefStateToBoolean(_localStorage);
-            Settings.Default.JavascriptAccessClipboard = CefStateToBoolean(_javascriptAccessClipboard);
-            Settings.Default.JavascriptCloseWindows = CefStateToBoolean(_javascriptCloseWindows);
-            Settings.Default.FileAccessFromFileUrls = CefStateToBoolean(_fileAccessFromFileUrls);
-            Settings.Default.Plugins = CefStateToBoolean(_plugins);
-            Settings.Default.LoadImages = CefStateToBoolean(_loadImages);
-            Settings.Default.WindowlessFrameRate = _windowlessFrameRate;
-            Settings.Default.Save();
+            if (!_appMode)
+            {
+                Settings.Default.WebSecurity = CefStateToBoolean(_webSecurity);
+                Settings.Default.ApplicationCache = CefStateToBoolean(_applicationCache);
+                Settings.Default.Databases = CefStateToBoolean(_databases);
+                Settings.Default.LocalStorage = CefStateToBoolean(_localStorage);
+                Settings.Default.JavascriptAccessClipboard = CefStateToBoolean(_javascriptAccessClipboard);
+                Settings.Default.JavascriptCloseWindows = CefStateToBoolean(_javascriptCloseWindows);
+                Settings.Default.FileAccessFromFileUrls = CefStateToBoolean(_fileAccessFromFileUrls);
+                Settings.Default.Plugins = CefStateToBoolean(_plugins);
+                Settings.Default.LoadImages = CefStateToBoolean(_loadImages);
+                Settings.Default.WindowlessFrameRate = _windowlessFrameRate;
+                Settings.Default.Save();
+            }
 
             #endregion
         }
@@ -513,6 +518,11 @@ namespace Opeity
         {
             _webSecurity = BooleanToCefState(PropWebSecurity.IsChecked != null && PropWebSecurity.IsChecked.Value);
             Browser.BrowserSettings.WebSecurity = _webSecurity;
+
+            if (PropWebSecurity.IsChecked != null)
+                Settings.Default.WebSecurity = PropWebSecurity.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropApplicationCache_Checked(object sender, RoutedEventArgs e)
@@ -521,6 +531,11 @@ namespace Opeity
                 PropApplicationCache.IsChecked != null && PropApplicationCache.IsChecked.Value);
 
             Browser.BrowserSettings.ApplicationCache = _applicationCache;
+
+            if (PropApplicationCache.IsChecked != null)
+                Settings.Default.ApplicationCache = PropApplicationCache.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropDatabases_Checked(object sender, RoutedEventArgs e)
@@ -529,6 +544,11 @@ namespace Opeity
                 PropDatabases.IsChecked != null && PropDatabases.IsChecked.Value);
 
             Browser.BrowserSettings.Databases = _databases;
+
+            if (PropDatabases.IsChecked != null)
+                Settings.Default.Databases = PropDatabases.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropLocalStorage_Checked(object sender, RoutedEventArgs e)
@@ -537,6 +557,11 @@ namespace Opeity
                PropLocalStorage.IsChecked != null && PropLocalStorage.IsChecked.Value);
 
             Browser.BrowserSettings.LocalStorage = _localStorage;
+
+            if (PropLocalStorage.IsChecked != null)
+                Settings.Default.LocalStorage = PropLocalStorage.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropJavascriptAccessClipboard_Checked(object sender, RoutedEventArgs e)
@@ -545,6 +570,11 @@ namespace Opeity
                PropJavascriptAccessClipboard.IsChecked != null && PropJavascriptAccessClipboard.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
+
+            if (PropJavascriptAccessClipboard.IsChecked != null)
+                Settings.Default.JavascriptAccessClipboard = PropJavascriptAccessClipboard.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropJavascriptCloseWindows_Checked(object sender, RoutedEventArgs e)
@@ -553,6 +583,11 @@ namespace Opeity
                PropJavascriptCloseWindows.IsChecked != null && PropJavascriptCloseWindows.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptCloseWindows = _javascriptCloseWindows;
+
+            if (PropJavascriptCloseWindows.IsChecked != null)
+                Settings.Default.JavascriptCloseWindows = PropJavascriptCloseWindows.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropFileAccessFromFileUrls_Checked(object sender, RoutedEventArgs e)
@@ -561,6 +596,11 @@ namespace Opeity
                 PropFileAccessFromFileUrls.IsChecked != null && PropFileAccessFromFileUrls.IsChecked.Value);
 
             Browser.BrowserSettings.FileAccessFromFileUrls = _fileAccessFromFileUrls;
+
+            if (PropFileAccessFromFileUrls.IsChecked != null)
+                Settings.Default.FileAccessFromFileUrls = PropFileAccessFromFileUrls.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropPlugins_Checked(object sender, RoutedEventArgs e)
@@ -569,6 +609,11 @@ namespace Opeity
                 PropPlugins.IsChecked != null && PropPlugins.IsChecked.Value);
 
             Browser.BrowserSettings.Plugins = _plugins;
+
+            if (PropPlugins.IsChecked != null)
+                Settings.Default.Plugins = PropPlugins.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropLoadImages_Checked(object sender, RoutedEventArgs e)
@@ -577,12 +622,22 @@ namespace Opeity
                 PropLoadImages.IsChecked != null && PropLoadImages.IsChecked.Value);
 
             Browser.BrowserSettings.ImageLoading = _loadImages;
+
+            if (PropLoadImages.IsChecked != null)
+                Settings.Default.LoadImages = PropLoadImages.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         private void PropForceSingleWindow_Checked(object sender, RoutedEventArgs e)
         {
             if (PropForceSingleWindow.IsChecked != null)
                 _forceSingleWindow = PropForceSingleWindow.IsChecked.Value;
+
+            if (PropForceSingleWindow.IsChecked != null)
+                Settings.Default.ForceSingleWindow = PropForceSingleWindow.IsChecked.Value;
+
+            Settings.Default.Save();
         }
 
         #endregion
