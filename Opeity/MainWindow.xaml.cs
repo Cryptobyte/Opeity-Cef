@@ -28,7 +28,7 @@ namespace Opeity
         public ObservableCollection<DownloadItemEx> filesDownloading = new ObservableCollection<DownloadItemEx>();
 
         private DownloadHandler downloadHandler;
-        
+
         private SettingsHelper settings;
 
         private BrowserSettings _browserSettings;

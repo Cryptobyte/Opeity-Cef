@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:opeity="clr-namespace:Opeity"
         xmlns:cefCore="clr-namespace:CefSharp;assembly=CefSharp.Core"
+        xmlns:components="clr-namespace:Opeity.Components"
         mc:Ignorable="d"
         x:Name="Chrome" Title="" Icon="Browser.ico" Height="350" Width="525" BorderThickness="0" BorderBrush="Black" SaveWindowPosition="True" TitleCharacterCasing="Normal"  LeftWindowCommandsOverlayBehavior="Never" RightWindowCommandsOverlayBehavior="Never" ShowIconOnTitleBar="False" Closing="Chrome_Closing" Loaded="Chrome_Loaded">
 
@@ -241,21 +242,7 @@
     </controls:MetroWindow.Flyouts>
 
     <Grid>
-        <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.ZIndex="0" Grid.Row="0">
-            <cefSharp:ChromiumWebBrowser.BrowserSettings>
-                <cefCore:BrowserSettings
-                    WebSecurity="Enabled"
-                    ApplicationCache="Disabled"
-                    Databases="Disabled"
-                    LocalStorage="Disabled"
-                    JavascriptAccessClipboard="Disabled"
-                    JavascriptCloseWindows="Disabled"
-                    FileAccessFromFileUrls="Disabled"
-                    Plugins="Disabled"
-                    ImageLoading="Disabled"
-                    WindowlessFrameRate="60" />
-            </cefSharp:ChromiumWebBrowser.BrowserSettings>
-        </cefSharp:ChromiumWebBrowser>
+        <cefSharp:ChromiumWebBrowser x:Name="Browser" Grid.ZIndex="0" Grid.Row="0" />
     </Grid>
 </controls:MetroWindow>
 
