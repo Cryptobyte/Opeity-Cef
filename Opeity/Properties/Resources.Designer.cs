@@ -61,6 +61,15 @@ namespace Opeity.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shortcut (*.lnk)|*.lnk.
+        /// </summary>
+        internal static string AppHelper_Make_Shortcut____lnk____lnk {
+            get {
+                return ResourceManager.GetString("AppHelper_Make_Shortcut____lnk____lnk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create App Shortcut.
         /// </summary>
         internal static string MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut {

@@ -117,4 +117,7 @@
   <data name="MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut" xml:space="preserve">
     <value>Create App Shortcut</value>
   </data>
+  <data name="AppHelper_Make_Shortcut____lnk____lnk" xml:space="preserve">
+    <value>Shortcut (*.lnk)|*.lnk</value>
+  </data>
 </root>

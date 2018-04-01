@@ -1,25 +1,22 @@
 ﻿using AngleSharp.Parser.Html;
 using CefSharp;
 using CommandLine;
-using IWshRuntimeLibrary;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Opeity.Handlers;
+using Opeity.Helpers;
 using Opeity.Objects;
 using Opeity.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Squirrel;
 using Application = System.Windows.Application;
-using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 
 namespace Opeity
 {
@@ -28,15 +25,18 @@ namespace Opeity
     /// </summary>
     public partial class MainWindow
     {
-        public ObservableCollection<string> History { get; set; }
         public ObservableCollection<DownloadItemEx> filesDownloading = new ObservableCollection<DownloadItemEx>();
 
         private DownloadHandler downloadHandler;
+        
+        private SettingsHelper settings;
 
+        private BrowserSettings _browserSettings;
         private CefState _webSecurity;
         private CefState _applicationCache;
         private CefState _databases;
         private CefState _localStorage;
+        private CefState _javascript;
         private CefState _javascriptAccessClipboard;
         private CefState _javascriptCloseWindows;
         private CefState _fileAccessFromFileUrls;
@@ -46,8 +46,8 @@ namespace Opeity
 
         public static bool _forceSingleWindow;
         public static bool _appMode;
-
-        private bool _forcedExit = false;
+        
+        private bool _forcedExit;
 
         private Timer updateTimer;
 
@@ -106,18 +106,20 @@ namespace Opeity
 
         #endregion
 
-        public MainWindow() {
+        public MainWindow(bool invalidApp) {
             InitializeComponent();
-            
-            #region Browser Handlers
 
+            #region Browser Handlers
+            
+            settings                = new SettingsHelper();
             downloadHandler         = new DownloadHandler();
+            _browserSettings        = new BrowserSettings();
             Browser.DownloadHandler = downloadHandler;
             Browser.LifeSpanHandler = new LifespanHandler();
             Browser.RequestHandler  = new RequestHandler();
             Browser.MenuHandler     = new ContextMenuHandler();
+            Browser.JsDialogHandler = new JsDialogHandler();
             Browser.RequestContext  = new RequestContext(new RequestContextHandler());
-            History                 = new ObservableCollection<string>();
             Downloads.ItemsSource   = filesDownloading;
 
             #endregion
@@ -134,16 +136,18 @@ namespace Opeity
 
             #region Load User Settings
 
-            _webSecurity = BooleanToCefState(Settings.Default.WebSecurity);
-            _applicationCache = BooleanToCefState(Settings.Default.ApplicationCache);
-            _databases = BooleanToCefState(Settings.Default.Databases);
-            _localStorage = BooleanToCefState(Settings.Default.LocalStorage);
-            _javascriptAccessClipboard = BooleanToCefState(Settings.Default.JavascriptAccessClipboard);
-            _javascriptCloseWindows = BooleanToCefState(Settings.Default.JavascriptCloseWindows);
-            _fileAccessFromFileUrls = BooleanToCefState(Settings.Default.FileAccessFromFileUrls);
-            _plugins = BooleanToCefState(Settings.Default.Plugins);
-            _loadImages = BooleanToCefState(Settings.Default.LoadImages);
-            _windowlessFrameRate = Settings.Default.WindowlessFrameRate;
+            _webSecurity = settings.GetOrDefault("WebSecurity", CefState.Enabled);
+            _applicationCache = settings.GetOrDefault("ApplicationCache", CefState.Disabled);
+            _databases = settings.GetOrDefault("Databases", CefState.Disabled);
+            _localStorage = settings.GetOrDefault("LocalStorage", CefState.Disabled);
+            _javascript = settings.GetOrDefault("Javascript", CefState.Enabled);
+            _javascriptAccessClipboard = settings.GetOrDefault("JavascriptAccessClipboard", CefState.Disabled);
+            _javascriptCloseWindows = settings.GetOrDefault("JavascriptCloseWindows", CefState.Disabled);
+            _fileAccessFromFileUrls = settings.GetOrDefault("FileAccessFromFileUrls", CefState.Disabled);
+            _plugins = settings.GetOrDefault("Plugins", CefState.Disabled);
+            _loadImages = settings.GetOrDefault("LoadImages", CefState.Enabled);
+
+            _windowlessFrameRate = 60;
 
             #endregion
 
@@ -153,26 +157,27 @@ namespace Opeity
             {
                 Browser.Address = (string.IsNullOrEmpty(options.OpenUrl)) ? Settings.Default.Home : options.OpenUrl;
 
-                if (options.App)
+                if (options.App && !invalidApp)
                 {
-                    _webSecurity               = CefState.Enabled;
-                    _applicationCache          = CefState.Enabled;
-                    _databases                 = CefState.Enabled;
-                    _localStorage              = CefState.Enabled;
+                    _webSecurity = CefState.Enabled;
+                    _applicationCache = CefState.Enabled;
+                    _databases = CefState.Enabled;
+                    _localStorage = CefState.Enabled;
+                    _javascript = CefState.Enabled;
                     _javascriptAccessClipboard = CefState.Enabled;
-                    _javascriptCloseWindows    = CefState.Enabled;
-                    _fileAccessFromFileUrls    = CefState.Disabled;
-                    _plugins                   = CefState.Disabled;
-                    _loadImages                = CefState.Enabled;
-                    _forceSingleWindow         = true;
-                    _appMode                   = true;
+                    _javascriptCloseWindows = CefState.Enabled;
+                    _fileAccessFromFileUrls = CefState.Disabled;
+                    _plugins = CefState.Disabled;
+                    _loadImages = CefState.Enabled;
+                    _forceSingleWindow = true;
+                    _appMode = true;
 
-                    C_BTN_Main.Visibility      = Visibility.Collapsed;
-                    C_BTN_Back.Visibility      = Visibility.Collapsed;
-                    C_BTN_Refresh.Visibility   = Visibility.Collapsed;
-                    C_BTN_Forward.Visibility   = Visibility.Collapsed;
-                    C_BTN_Settings.Visibility  = Visibility.Collapsed;
-                    C_BTN_MakeApp.Visibility   = Visibility.Collapsed;
+                    C_BTN_Main.Visibility = Visibility.Collapsed;
+                    C_BTN_Back.Visibility = Visibility.Collapsed;
+                    C_BTN_Refresh.Visibility = Visibility.Collapsed;
+                    C_BTN_Forward.Visibility = Visibility.Collapsed;
+                    C_BTN_Settings.Visibility = Visibility.Collapsed;
+                    C_BTN_MakeApp.Visibility = Visibility.Collapsed;
 
                     _appMode = true;
                 }
@@ -181,35 +186,38 @@ namespace Opeity
             #endregion
 
             #region Browser Defaults
-            
-            Browser.BrowserSettings.WebSecurity               = _webSecurity;
-            Browser.BrowserSettings.ApplicationCache          = _applicationCache;
-            Browser.BrowserSettings.Databases                 = _databases;
-            Browser.BrowserSettings.LocalStorage              = _localStorage;
-            Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
-            Browser.BrowserSettings.JavascriptCloseWindows    = _javascriptCloseWindows;
-            Browser.BrowserSettings.FileAccessFromFileUrls    = _fileAccessFromFileUrls;
-            Browser.BrowserSettings.Plugins                   = _plugins;
-            Browser.BrowserSettings.ImageLoading              = _loadImages;
-            Browser.BrowserSettings.WindowlessFrameRate       = _windowlessFrameRate;
+
+            _browserSettings.WebSecurity               = _webSecurity;
+            _browserSettings.ApplicationCache          = _applicationCache;
+            _browserSettings.Databases                 = _databases;
+            _browserSettings.LocalStorage              = _localStorage;
+            _browserSettings.Javascript                = _javascript;
+            _browserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
+            _browserSettings.JavascriptCloseWindows    = _javascriptCloseWindows;
+            _browserSettings.FileAccessFromFileUrls    = _fileAccessFromFileUrls;
+            _browserSettings.Plugins                   = _plugins;
+            _browserSettings.ImageLoading              = _loadImages;
+            _browserSettings.WindowlessFrameRate       = _windowlessFrameRate;
+
+            Browser.BrowserSettings = _browserSettings;
 
             PropWebSecurity.IsChecked               = CefStateToBoolean(_webSecurity);
             PropApplicationCache.IsChecked          = CefStateToBoolean(_applicationCache);
             PropDatabases.IsChecked                 = CefStateToBoolean(_databases);
             PropLocalStorage.IsChecked              = CefStateToBoolean(_localStorage);
+            PropJavascript.IsChecked                = CefStateToBoolean(_javascript);
             PropJavascriptAccessClipboard.IsChecked = CefStateToBoolean(_javascriptAccessClipboard);
             PropJavascriptCloseWindows.IsChecked    = CefStateToBoolean(_javascriptCloseWindows);
             PropFileAccessFromFileUrls.IsChecked    = CefStateToBoolean(_fileAccessFromFileUrls);
             PropPlugins.IsChecked                   = CefStateToBoolean(_plugins);
             PropLoadImages.IsChecked                = CefStateToBoolean(_loadImages);
-            PropForceSingleWindow.IsChecked         = _forceSingleWindow;
 
             #endregion
-
+            
             updateTimer = new Timer()
             {
-                Enabled = true,
-                Interval = 3000
+                Enabled = invalidApp,
+                Interval = 350
             };
 
             updateTimer.Tick += UpdateTimer_Tick;
@@ -218,26 +226,7 @@ namespace Opeity
         private async void UpdateTimer_Tick(object sender, EventArgs e)
         {
             updateTimer.Enabled = false;
-
-            await Task.Factory.StartNew(async () => {
-                try
-                {
-                    using (var mgr = await UpdateManager.GitHubUpdateManager("https://github.com/Cryptobyte/Opeity-Cef"))
-                    {
-                        try
-                        {
-                            var updateInfo = await mgr.CheckForUpdate(true);
-                            await mgr.DownloadReleases(updateInfo.ReleasesToApply);
-                            await mgr.ApplyReleases(updateInfo);
-                            await mgr.CreateUninstallerRegistryEntry();
-
-                            Console.WriteLine(updateInfo.CurrentlyInstalledVersion);
-
-                        } catch (Exception ex) { Console.WriteLine(ex.Message); }
-                    }
-
-                } catch (Exception ex) { Console.WriteLine(ex.Message); }
-            });
+            await this.ShowMessageAsync("Invalid App", "Opeity was forced to load without app mode enabled because the app config is invalid");
         }
 
         private void DownloadHandlerOnOnDownloadItemUpdated(object sender, DownloadHandler.DownloadProgress e)
@@ -350,6 +339,7 @@ namespace Opeity
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
+                            GlowBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(color);
                             WindowTitleBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(color);
                         });
                     }
@@ -360,7 +350,10 @@ namespace Opeity
                             Brush defBrush = new SolidColorBrush((Color)FindResource("AccentColor"));
 
                             if (!Equals(WindowTitleBrush, defBrush))
+                            {
+                                GlowBrush = defBrush;
                                 WindowTitleBrush = defBrush;
+                            }
 
                         });
                     }
@@ -403,27 +396,15 @@ namespace Opeity
                 }
             }
 
-            Browser.Dispose();
-            Cef.Shutdown();
-
             #region Save User Settings
 
             if (!_appMode)
-            {
-                Settings.Default.WebSecurity = CefStateToBoolean(_webSecurity);
-                Settings.Default.ApplicationCache = CefStateToBoolean(_applicationCache);
-                Settings.Default.Databases = CefStateToBoolean(_databases);
-                Settings.Default.LocalStorage = CefStateToBoolean(_localStorage);
-                Settings.Default.JavascriptAccessClipboard = CefStateToBoolean(_javascriptAccessClipboard);
-                Settings.Default.JavascriptCloseWindows = CefStateToBoolean(_javascriptCloseWindows);
-                Settings.Default.FileAccessFromFileUrls = CefStateToBoolean(_fileAccessFromFileUrls);
-                Settings.Default.Plugins = CefStateToBoolean(_plugins);
-                Settings.Default.LoadImages = CefStateToBoolean(_loadImages);
-                Settings.Default.WindowlessFrameRate = _windowlessFrameRate;
-                Settings.Default.Save();
-            }
+                settings.Save();
 
             #endregion
+
+            Browser.Dispose();
+            Cef.Shutdown();
         }
 
         #region Window Buttons
@@ -465,179 +446,109 @@ namespace Opeity
 
         private void C_BTN_MakeApp_Click(object sender, RoutedEventArgs e)
         {
-            var sfd = new SaveFileDialog()
-            {
-                Title = Properties.Resources.MainWindow_C_BTN_MakeApp_Click_Create_App_Shortcut,
-                AddExtension = true,
-                CheckPathExists = true,
-                FileName = $"{Browser.Title}.lnk",
-                Filter = "Shortcut (*.lnk)|*.lnk",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                RestoreDirectory = true,
-            };
-
-            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                var appDir =
-                    Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Apps");
-
-                if (!Directory.Exists(appDir))
-                    Directory.CreateDirectory(appDir);
-
-                using (var client = new WebClient())
-                {
-                    client.DownloadFile(
-                        $"https://api.statvoo.com/favicon/?url={Browser.Address}",
-                        Path.Combine(appDir, $"{Browser.Title}.ico")
-                    );
-                }
-                
-                var shell = new WshShell();
-                var shortCutLinkFilePath = sfd.FileName;
-                var windowsApplicationShortcut = (IWshShortcut)shell.CreateShortcut(shortCutLinkFilePath);
-
-                windowsApplicationShortcut.Description = Browser.Title;
-
-                windowsApplicationShortcut.WorkingDirectory =
-                    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-                windowsApplicationShortcut.TargetPath =
-                    System.Reflection.Assembly.GetExecutingAssembly().Location;
-
-                windowsApplicationShortcut.Arguments = $"-app -o \"{Browser.Address}\"";
-                windowsApplicationShortcut.IconLocation = Path.Combine(appDir, $"{Browser.Title}.ico");
-                windowsApplicationShortcut.Save();
-            }
+            new AppHelper().Make(Browser.Title, Browser.Address);
         }
 
         #endregion
 
         #region Properties
 
-        private void PropWebSecurity_Checked(object sender, RoutedEventArgs e)
+        private void PropWebSecurity_Checked(object sender, EventArgs eventArgs)
         {
             _webSecurity = BooleanToCefState(PropWebSecurity.IsChecked != null && PropWebSecurity.IsChecked.Value);
             Browser.BrowserSettings.WebSecurity = _webSecurity;
 
-            if (PropWebSecurity.IsChecked != null)
-                Settings.Default.WebSecurity = PropWebSecurity.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("WebSecurity", _webSecurity);
         }
 
-        private void PropApplicationCache_Checked(object sender, RoutedEventArgs e)
+        private void PropApplicationCache_Checked(object sender, EventArgs eventArgs)
         {
             _applicationCache = BooleanToCefState(
                 PropApplicationCache.IsChecked != null && PropApplicationCache.IsChecked.Value);
 
             Browser.BrowserSettings.ApplicationCache = _applicationCache;
 
-            if (PropApplicationCache.IsChecked != null)
-                Settings.Default.ApplicationCache = PropApplicationCache.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("ApplicationCache", _applicationCache);
         }
 
-        private void PropDatabases_Checked(object sender, RoutedEventArgs e)
+        private void PropDatabases_Checked(object sender, EventArgs eventArgs)
         {
             _databases = BooleanToCefState(
                 PropDatabases.IsChecked != null && PropDatabases.IsChecked.Value);
 
             Browser.BrowserSettings.Databases = _databases;
 
-            if (PropDatabases.IsChecked != null)
-                Settings.Default.Databases = PropDatabases.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("Databases", _databases);
         }
 
-        private void PropLocalStorage_Checked(object sender, RoutedEventArgs e)
+        private void PropLocalStorage_Checked(object sender, EventArgs eventArgs)
         {
            _localStorage = BooleanToCefState(
                PropLocalStorage.IsChecked != null && PropLocalStorage.IsChecked.Value);
 
             Browser.BrowserSettings.LocalStorage = _localStorage;
 
-            if (PropLocalStorage.IsChecked != null)
-                Settings.Default.LocalStorage = PropLocalStorage.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("LocalStorage", _localStorage);
         }
 
-        private void PropJavascriptAccessClipboard_Checked(object sender, RoutedEventArgs e)
+        private void PropPropJavascript_Checked(object sender, EventArgs eventArgs)
+        {
+            _javascript = BooleanToCefState(
+                PropJavascript.IsChecked != null && PropJavascript.IsChecked.Value);
+
+            Browser.BrowserSettings.Javascript = _javascript;
+
+            settings.Set("Javascript", _javascript);
+        }
+
+        private void PropJavascriptAccessClipboard_Checked(object sender, EventArgs eventArgs)
         {
            _javascriptAccessClipboard = BooleanToCefState(
                PropJavascriptAccessClipboard.IsChecked != null && PropJavascriptAccessClipboard.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptAccessClipboard = _javascriptAccessClipboard;
 
-            if (PropJavascriptAccessClipboard.IsChecked != null)
-                Settings.Default.JavascriptAccessClipboard = PropJavascriptAccessClipboard.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("JavascriptAccessClipboard", _javascriptAccessClipboard);
         }
 
-        private void PropJavascriptCloseWindows_Checked(object sender, RoutedEventArgs e)
+        private void PropJavascriptCloseWindows_Checked(object sender, EventArgs eventArgs)
         {
            _javascriptCloseWindows = BooleanToCefState(
                PropJavascriptCloseWindows.IsChecked != null && PropJavascriptCloseWindows.IsChecked.Value);
 
             Browser.BrowserSettings.JavascriptCloseWindows = _javascriptCloseWindows;
 
-            if (PropJavascriptCloseWindows.IsChecked != null)
-                Settings.Default.JavascriptCloseWindows = PropJavascriptCloseWindows.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("JavascriptCloseWindows", _javascriptCloseWindows);
         }
 
-        private void PropFileAccessFromFileUrls_Checked(object sender, RoutedEventArgs e)
+        private void PropFileAccessFromFileUrls_Checked(object sender, EventArgs eventArgs)
         {
             _fileAccessFromFileUrls = BooleanToCefState(
                 PropFileAccessFromFileUrls.IsChecked != null && PropFileAccessFromFileUrls.IsChecked.Value);
 
             Browser.BrowserSettings.FileAccessFromFileUrls = _fileAccessFromFileUrls;
 
-            if (PropFileAccessFromFileUrls.IsChecked != null)
-                Settings.Default.FileAccessFromFileUrls = PropFileAccessFromFileUrls.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("FileAccessFromFileUrls", _fileAccessFromFileUrls);
         }
 
-        private void PropPlugins_Checked(object sender, RoutedEventArgs e)
+        private void PropPlugins_Checked(object sender, EventArgs eventArgs)
         {
             _plugins = BooleanToCefState(
                 PropPlugins.IsChecked != null && PropPlugins.IsChecked.Value);
 
             Browser.BrowserSettings.Plugins = _plugins;
 
-            if (PropPlugins.IsChecked != null)
-                Settings.Default.Plugins = PropPlugins.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("Plugins", _plugins);
         }
 
-        private void PropLoadImages_Checked(object sender, RoutedEventArgs e)
+        private void PropLoadImages_Checked(object sender, EventArgs eventArgs)
         {
             _loadImages = BooleanToCefState(
                 PropLoadImages.IsChecked != null && PropLoadImages.IsChecked.Value);
 
             Browser.BrowserSettings.ImageLoading = _loadImages;
 
-            if (PropLoadImages.IsChecked != null)
-                Settings.Default.LoadImages = PropLoadImages.IsChecked.Value;
-
-            Settings.Default.Save();
-        }
-
-        private void PropForceSingleWindow_Checked(object sender, RoutedEventArgs e)
-        {
-            if (PropForceSingleWindow.IsChecked != null)
-                _forceSingleWindow = PropForceSingleWindow.IsChecked.Value;
-
-            if (PropForceSingleWindow.IsChecked != null)
-                Settings.Default.ForceSingleWindow = PropForceSingleWindow.IsChecked.Value;
-
-            Settings.Default.Save();
+            settings.Set("ImageLoading", _loadImages);
         }
 
         #endregion
