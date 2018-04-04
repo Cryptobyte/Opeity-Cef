@@ -12,6 +12,7 @@ no bs easy to use web browser configured with fairly safe and secure defaults.
 - [ ] Automatic Ad blocker using [AdBlock style lists](https://easylist.to/)
 - [ ] Simple, automatic Tor support
 - [ ] Automatic update functionality
+- [ ] Extensive support for web apps
 
 ### Updates
 This is a side project of mine that I work on just for fun so updates may not be very frequent but over time I will try my 
